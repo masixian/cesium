@@ -28,8 +28,11 @@ varying float v_aspect;
 varying float v_height;
 #endif
 
-#if defined(FOG) || defined(GROUND_ATMOSPHERE)
+#if defined(FOG) || defined(GROUND_ATMOSPHERE) || defined(UNDERGROUND_COLOR) || defined(TRANSLUCENT)
 varying float v_distance;
+#endif
+
+#if defined(FOG) || defined(GROUND_ATMOSPHERE)
 varying vec3 v_fogMieColor;
 varying vec3 v_fogRayleighColor;
 #endif
@@ -169,14 +172,17 @@ void main()
 #endif
 
 #if defined(FOG) || defined(GROUND_ATMOSPHERE)
-    AtmosphereColor atmosFogColor = computeGroundAtmosphereFromSpace(position3DWC, false);
+    AtmosphereColor atmosFogColor = computeGroundAtmosphereFromSpace(position3DWC, false, vec3(0.0));
     v_fogMieColor = atmosFogColor.mie;
     v_fogRayleighColor = atmosFogColor.rayleigh;
+#endif
+
+#if defined(FOG) || defined(GROUND_ATMOSPHERE) || defined(UNDERGROUND_COLOR) || defined(TRANSLUCENT)
     v_distance = length((czm_modelView3D * vec4(position3DWC, 1.0)).xyz);
 #endif
 
 #ifdef APPLY_MATERIAL
-    float northPoleZ = czm_getWgs84EllipsoidEC().radii.z;
+    float northPoleZ = czm_ellipsoidRadii.z;
     vec3 northPolePositionMC = vec3(0.0, 0.0, northPoleZ);
     vec3 ellipsoidNormal = normalize(v_positionMC); // For a sphere this is correct, but not generally for an ellipsoid.
     vec3 vectorEastMC = normalize(cross(northPolePositionMC - v_positionMC, ellipsoidNormal));
